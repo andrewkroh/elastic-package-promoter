@@ -1,0 +1,38 @@
+---
+
+run:
+  issues-exit-code: 1
+  modules-download-mode: readonly
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - varcheck
+
+    - depguard
+    - errorlint
+    - gofumpt
+    - gci
+    - godox
+    - goheader
+    - ifshort
+    - misspell
+    - prealloc
+    - unconvert
+#    - wrapcheck
+  fast: false
+
+linters-settings:
+  gci:
+    local-prefixes: github.com/andrewkroh
+  gofumpt:
+    extra-rules: true
