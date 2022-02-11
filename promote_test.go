@@ -53,18 +53,20 @@ func TestTemplateVersionUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	t.Log("Output:\n", string(out))
+
 	const expected = `
 ## Summary of Changes
 
 Comparisons were made to production branch commit
 abc1234 from 2022-01-11 08:09:18 +0000 UTC.
 
-- AWS - 1.8.0
-  - Requires ^8.0.0
-  - Changes since 1.7.0
-    - 1.8.0
-      - enhancement: Update ECS [PR](https://github.com/elastic/integrations/pull/123)
-      - bugfix: Fix bug [PR](https://github.com/elastic/integrations/pull/124)
+### AWS - 1.8.0
+- Requires ^8.0.0
+- Changes since 1.7.0
+  - 1.8.0
+    - enhancement: Update ECS [PR](https://github.com/elastic/integrations/pull/123)
+    - bugfix: Fix bug [PR](https://github.com/elastic/integrations/pull/124)
 `
 
 	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(string(out)))
@@ -107,17 +109,19 @@ func TestTemplateNewPackage(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	t.Log("Output:\n", string(out))
+
 	const expected = `
 ## Summary of Changes
 
 Comparisons were made to production branch commit
 abc1234 from 2022-01-11 08:09:18 +0000 UTC.
 
-- Vaporware - 1.0.0
-  - Requires ^8.0.0
-  - New Package
-    - 1.0.0
-      - enhancement: Update ECS [PR](https://github.com/elastic/integrations/pull/123)
+### Vaporware - 1.0.0
+- Requires ^8.0.0
+- New Package
+  - 1.0.0
+    - enhancement: Update ECS [PR](https://github.com/elastic/integrations/pull/123)
 `
 
 	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(string(out)))
