@@ -33,3 +33,14 @@ release:
   draft: true
   prerelease: auto
   mode: append
+
+changelog:
+  groups:
+    - title: Added
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: Fixed
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Other
+      order: 999
