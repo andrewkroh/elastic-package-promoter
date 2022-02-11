@@ -1,0 +1,27 @@
+## Summary of Changes
+
+Comparisons were made to {{ .TargetBranch.Name }} branch commit
+{{ .TargetBranch.Commit }} from {{ .TargetBranch.Timestamp }}.
+{{ range $package := .Packages }}
+- {{ $package.Title }} - {{ $package.Version }}
+  - Requires {{ $package.Conditions.KibanaVersion }}
+  {{- with $latest := latestVersion $.TargetBranch $package.Name }}
+  {{- if $latest }}
+  - Changes since {{ $latest.Version }}
+    {{- range $release := changesSince $package $latest.Version }}
+    - {{ $release.Version }}
+      {{- range $change := $release.Changes }}
+      - {{ $change.Type }}: {{ $change.Description }} [PR]({{ $change.Link }})
+      {{- end }}
+    {{ end }}
+  {{ end }}
+  {{ else }}
+  - New Package
+  {{- range $release := $package.Changelog }}
+    - {{ $release.Version }}
+    {{- range $change := $release.Changes }}
+      - {{ $change.Type }}: {{ $change.Description }} [PR]({{ $change.Link }})
+    {{- end }}
+  {{ end }}
+  {{- end }}
+{{- end }}

@@ -1,1 +1,0 @@
-# elastic-package-promoter
