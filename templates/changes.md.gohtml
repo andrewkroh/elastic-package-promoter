@@ -1,0 +1,6 @@
+  {{- range $release := . }}
+  - {{ $release.Version }}
+    {{- range $change := $release.Changes }}
+     - {{ $change.Type }}: {{ $change.Description }} ([PR]({{ $change.Link }}))
+    {{- end }}
+  {{ end }}

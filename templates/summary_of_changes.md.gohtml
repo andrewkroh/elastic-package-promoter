@@ -1,0 +1,37 @@
+## Summary of Fleet Package Changes
+
+Report generated from {{ .OriginBranch.Name }} branch commit
+[{{ .OriginBranch.Commit }}](
+https://github.com/elastic/package-storage/commit/{{ .OriginBranch.Commit }})
+from {{ .OriginBranch.Timestamp }}.
+
+Comparisons were made to {{ .TargetBranch.Name }} branch commit
+[{{ .TargetBranch.Commit }}](
+https://github.com/elastic/package-storage/commit/{{ .TargetBranch.Commit }})
+from {{ .TargetBranch.Timestamp }}.
+
+Filtering parameters:
+{{ if .TeamFilter }}
+  - Team: {{ .TeamFilter }}
+{{ end }}
+  - Include Deprecated: {{ .IncludeDeprecated }}
+
+{{ range $package := .Packages }}
+### {{ $package.Title }} - {{ $package.Version }}
+Owner: {{ $package.Owner.Github }}
+
+Requires: {{ $package.Conditions.KibanaVersion }}
+{{ with $latest := latestVersion $.TargetBranch $package.Name }}
+{{- if $latest }}
+Changes since {{ $latest.Version }}
+{{ template "changes.md.gohtml" changesSince $package $latest.Version }}
+{{ end }}
+{{ else }}
+New Package
+{{ template "changes.md.gohtml" $package.Changelog }}
+{{- end }}
+{{- end }}
+
+To promote these packages use this command:
+
+`{{ makePromoteCommand .OriginBranch.Name .TargetBranch.Name .Packages }}`

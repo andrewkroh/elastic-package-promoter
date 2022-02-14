@@ -18,7 +18,6 @@
 package main
 
 import (
-	"bytes"
 	"embed"
 	"errors"
 	"flag"
@@ -30,12 +29,12 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/gomarkdown/markdown"
 	"gopkg.in/yaml.v2"
 )
 
@@ -46,22 +45,24 @@ const (
 
 // Parameters
 var (
-	originBranch           string
-	targetBranch           string
-	teamFilter             string
-	includeDeprecated      bool
-	generatePromoteCommand bool
+	originBranch      string
+	targetBranch      string
+	teamFilter        string
+	includeDeprecated bool
+	templateFile      string
+	markdownToHTML    bool
 )
 
 func init() {
 	flag.StringVar(&originBranch, "origin", "snapshot", "origin branch")
 	flag.StringVar(&targetBranch, "target", "production", "target branch")
-	flag.StringVar(&teamFilter, "team", "elastic/security-external-integrations", "select packages owned by this team")
+	flag.StringVar(&teamFilter, "team", "", "select packages owned by this team (e.g. elastic/security-external-integrations)")
 	flag.BoolVar(&includeDeprecated, "d", false, "include deprecated packages")
-	flag.BoolVar(&generatePromoteCommand, "cmd", true, "generate elastic-package promote command")
+	flag.StringVar(&templateFile, "tmpl", "embed:summary_of_changes.md.gohtml", "template file to render")
+	flag.BoolVar(&markdownToHTML, "md-to-html", false, "convert markdown to HTML")
 }
 
-//go:embed templates/*.gotmpl
+//go:embed templates/*.gohtml
 var templates embed.FS
 
 var errPackageNotFound = errors.New("package not found")
@@ -358,8 +359,11 @@ func filterPackages(packages []Package, predicate func(*Package) bool) []Package
 }
 
 type SummaryOfChanges struct {
-	TargetBranch *Branch
-	Packages     []Package
+	TeamFilter        string
+	IncludeDeprecated bool
+	OriginBranch      *Branch
+	TargetBranch      *Branch
+	Packages          []Package
 }
 
 type Branch struct {
@@ -400,66 +404,23 @@ func newBranch(repo *git.Repository, name string) (*Branch, error) {
 	}, nil
 }
 
-var tmpl = template.Must(template.New("github").
-	Option("missingkey=error").
-	Funcs(template.FuncMap{
-		"latestVersion": func(branch Branch, packageName string) (*Package, error) {
-			p, err := listLatestPackage(branch.worktree, packageName)
-			if err != nil {
-				if errors.Is(err, errPackageNotFound) {
-					return nil, nil
-				}
-				return nil, err
-			}
-			return p, nil
-		},
-		"changesSince": func(p Package, sinceVersion *semver.Version) Changelog {
-			return p.Changelog.ChangesSince(sinceVersion)
-		},
-	}).
-	ParseFS(templates, "*/*.gotmpl"))
-
-func summarizeChanges(targetBranch *Branch, packages []Package) ([]byte, error) {
-	buf := new(bytes.Buffer)
-	err := tmpl.ExecuteTemplate(buf, "summary_of_changes.gotmpl",
-		SummaryOfChanges{
-			TargetBranch: targetBranch,
-			Packages:     packages,
-		})
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
-func makePromoteCommand(origin, target string, packages []Package) string {
-	var sb strings.Builder
-	sb.WriteString("elastic-package promote -d=")
-	sb.WriteString(origin)
-	sb.WriteString("-")
-	sb.WriteString(target)
-	sb.WriteString(` -n -p "`)
-	for i, p := range packages {
-		sb.WriteString(p.Name)
-		sb.WriteString("-")
-		sb.WriteString(p.Version.String())
-		if i < len(packages)-1 {
-			sb.WriteString(",")
-		}
-	}
-	sb.WriteString(`"`)
-
-	return sb.String()
-}
-
 func run() error {
+	tmpl, err := getTemplate(templateFile)
+	if err != nil {
+		return err
+	}
+
 	repo, err := clonePackageStorage()
 	if err != nil {
 		return err
 	}
 
 	if err = checkoutBranch(repo, originBranch); err != nil {
+		return err
+	}
+
+	origin, err := newBranch(repo, originBranch)
+	if err != nil {
 		return err
 	}
 
@@ -500,19 +461,22 @@ func run() error {
 		return err
 	}
 
-	out, err := summarizeChanges(target, packages)
+	out, err := renderTemplate(tmpl, &SummaryOfChanges{
+		TeamFilter:        teamFilter,
+		IncludeDeprecated: includeDeprecated,
+		OriginBranch:      origin,
+		TargetBranch:      target,
+		Packages:          packages,
+	})
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(out))
-
-	if generatePromoteCommand {
-		fmt.Println("To promote these packages use:")
-		fmt.Println("")
-		fmt.Printf("`%s`\n", makePromoteCommand(originBranch, targetBranch, packages))
+	if markdownToHTML {
+		out = markdown.ToHTML(out, nil, nil)
 	}
 
+	fmt.Println(string(out))
 	return nil
 }
 

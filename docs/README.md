@@ -25,14 +25,15 @@ go install github.com/andrewkroh/elastic-package-promoter@latest
 ```
 $(go env GOPATH)/bin/elastic-package-promoter -h
 Usage of elastic-package-promoter:
-  -cmd
-        generate elastic-package promote command (default true)
   -d    include deprecated packages
+  -md-to-html
+        convert markdown to HTML
   -origin string
         origin branch (default "snapshot")
   -target string
         target branch (default "production")
   -team string
-        select packages owned by this team (default "elastic/security-external-integrations")
-
+        select packages owned by this team (e.g. elastic/security-external-integrations)
+  -tmpl string
+        template file to render (default "embed:summary_of_changes.md.gohtml")
 ```
