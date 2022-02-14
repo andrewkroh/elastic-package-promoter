@@ -38,14 +38,14 @@ jobs:
           curl -q -L -o elastic-package-promoter https://github.com/andrewkroh/elastic-package-promoter/releases/download/v${version}/elastic-package-promoter_${version}_linux_amd64
           chmod a+x ./elastic-package-promoter
 
-      - name: Send email
+      - name: Send SEI snapshot email
         env:
-          TO: andrew.kroh
+          TO: security-external-integrations-team
         run: |
           cat << EOF > /tmp/email.txt
           To:${TO}@elastic.co
           From:${{ secrets.SMTP_FROM }}
-          Subject: Summary of Fleet Packages Changes $(date +%F)
+          Subject: Summary of Fleet Packages Changes $(date +%F) - Snapshot
           Content-Type: text/html
           MIME-Version: 1.0
           EOF
