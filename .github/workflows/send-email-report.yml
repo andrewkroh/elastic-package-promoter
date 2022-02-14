@@ -52,7 +52,10 @@ jobs:
           MIME-Version: 1.0
           EOF
 
-          ./elastic-package-promoter -tmpl=embed:email.md.gohtml -md-to-html >> /tmp/email.txt
+          ./elastic-package-promoter \
+            -team="elastic/security-external-integrations" \
+            -tmpl=embed:email.md.gohtml \
+            -md-to-html >> /tmp/email.txt
 
           sendmail -t < /tmp/email.txt
 

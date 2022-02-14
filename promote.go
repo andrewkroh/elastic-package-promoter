@@ -43,6 +43,12 @@ const (
 	remoteRepository = "https://github.com/elastic/package-storage"
 )
 
+// Build-time parameters.
+var (
+	version string
+	commit  string
+)
+
 // Parameters
 var (
 	originBranch      string
@@ -364,6 +370,7 @@ type SummaryOfChanges struct {
 	OriginBranch      *Branch
 	TargetBranch      *Branch
 	Packages          []Package
+	Version           string
 }
 
 type Branch struct {
@@ -405,6 +412,8 @@ func newBranch(repo *git.Repository, name string) (*Branch, error) {
 }
 
 func run() error {
+	log.Printf("%s %s (%s)", appName, version, commit)
+
 	tmpl, err := getTemplate(templateFile)
 	if err != nil {
 		return err
@@ -467,6 +476,7 @@ func run() error {
 		OriginBranch:      origin,
 		TargetBranch:      target,
 		Packages:          packages,
+		Version:           version,
 	})
 	if err != nil {
 		return err
