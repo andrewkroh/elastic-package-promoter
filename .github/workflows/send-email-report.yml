@@ -1,0 +1,61 @@
+name: Email Package Summary
+
+on:
+  push:
+    branches:
+      - send-email-report
+  schedule:
+    - cron:  '0 8 * * MON'
+
+permissions: read-all
+
+jobs:
+  golangci:
+    name: send-email
+    runs-on: ubuntu-latest
+    steps:
+      - id: latest
+        uses: pozetroninc/github-action-get-latest-release@v0.5.0
+        with:
+          repository: andrewkroh/elastic-package-promoter
+          excludes: prerelease, draft
+
+      - name: Configure ssmtp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ssmtp
+
+          cat << EOF | sudo tee /etc/ssmtp/ssmtp.conf > /dev/null
+          root=${{ secrets.SMTP_USER }}
+          mailhub=smtp.gmail.com:465
+          FromLineOverride=YES
+          AuthUser=${{ secrets.SMTP_USER }}
+          AuthPass=${{ secrets.SMTP_PASS }}
+          UseTLS=YES
+          EOF
+
+      - name: Download latest elastic-package-promoter
+        run: |
+          version=$(echo "${{ steps.latest.outputs.release }}" | sed s/^v//g)
+          curl -q -L -o elastic-package-promoter https://github.com/andrewkroh/elastic-package-promoter/releases/download/v${version}/elastic-package-promoter_${version}_linux_amd64
+          chmod a+x ./elastic-package-promoter
+
+      - name: Send email
+        env:
+          TO: andrew.kroh
+        run: |
+          cat << EOF > /tmp/email.txt
+          To:${TO}@elastic.co
+          From:${{ secrets.SMTP_FROM }}
+          Subject: Summary of Fleet Packages Changes $(date +%F)
+          Content-Type: text/html
+          MIME-Version: 1.0
+          EOF
+
+          ./elastic-package-promoter \
+            -team="elastic/security-external-integrations" \
+            -tmpl=embed:email.md.gohtml \
+            -md-to-html >> /tmp/email.txt
+
+          sendmail -t < /tmp/email.txt
+
