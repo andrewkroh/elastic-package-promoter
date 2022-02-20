@@ -57,3 +57,22 @@ jobs:
 
           sendmail -t < /tmp/email.txt
 
+      - name: Send SEI staging email
+        env:
+          TO: security-external-integrations-team
+        run: |
+          cat << EOF > /tmp/email.txt
+          To:${TO}@elastic.co
+          From:${{ secrets.SMTP_FROM }}
+          Subject: Summary of Fleet Packages Changes $(date +%F) - Staging
+          Content-Type: text/html
+          MIME-Version: 1.0
+          EOF
+
+          ./elastic-package-promoter \
+            -origin=staging \
+            -team="elastic/security-external-integrations" \
+            -tmpl=embed:email.md.gohtml \
+            -md-to-html >> /tmp/email.txt
+
+          sendmail -t < /tmp/email.txt
