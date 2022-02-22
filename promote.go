@@ -52,7 +52,7 @@ var (
 
 func init() {
 	if version == "" && commit == "" {
-		// Fall back to Go module data when no built with goreleaser.
+		// Fall back to Go module data when not built with goreleaser.
 		if info, ok := debug.ReadBuildInfo(); ok {
 			if info.Main.Sum == "" {
 				info.Main.Sum = "unknown"
