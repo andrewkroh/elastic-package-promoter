@@ -27,6 +27,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"time"
@@ -43,11 +44,24 @@ const (
 	remoteRepository = "https://github.com/elastic/package-storage"
 )
 
-// Build-time parameters.
+// Build info.
 var (
 	version string
 	commit  string
 )
+
+func init() {
+	if version == "" && commit == "" {
+		// Fall back to Go module data when not built with goreleaser.
+		if info, ok := debug.ReadBuildInfo(); ok {
+			if info.Main.Sum == "" {
+				info.Main.Sum = "unknown"
+			}
+			version = info.Main.Version
+			commit = info.Main.Sum
+		}
+	}
+}
 
 // Parameters
 var (
