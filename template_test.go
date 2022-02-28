@@ -108,6 +108,12 @@ func TestTemplateSummaryOfChanges(t *testing.T) {
 			},
 		},
 	})
+
+	testTemplate(t, "no_pending_changes.md", &SummaryOfChanges{
+		OriginBranch: originBranch,
+		TargetBranch: targetBranch,
+		Packages:     nil,
+	})
 }
 
 func testTemplate(t *testing.T, templateName string, soc *SummaryOfChanges) {

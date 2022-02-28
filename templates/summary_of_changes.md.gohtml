@@ -16,6 +16,9 @@ Filtering parameters:
 {{ end }}
   - Include Deprecated: {{ .IncludeDeprecated }}
 
+{{ if not .Packages -}}
+There are no pending changes.
+{{ else }}
 {{ range $package := .Packages }}
 ### {{ $package.Title }} - {{ $package.Version }}
 Owner: {{ $package.Owner.Github }}
@@ -35,3 +38,4 @@ New Package
 To promote these packages use this command:
 
 `{{ makePromoteCommand .OriginBranch.Name .TargetBranch.Name .Packages }}`
+{{- end }}

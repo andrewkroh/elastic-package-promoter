@@ -466,7 +466,6 @@ func run() error {
 
 	if len(packages) == 0 {
 		log.Printf("No matching packages found on <%v>.", originBranch)
-		return nil
 	} else {
 		log.Printf("Found %d matching packages on <%v>.", len(packages), originBranch)
 	}
