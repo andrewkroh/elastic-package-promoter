@@ -14,23 +14,5 @@ Filtering parameters:
 
   - Include Deprecated: false
 
+There are no pending changes.
 
-
-### AWS - 1.8.0
-Owner: elastic/foo-team
-
-Requires: ^8.0.0
-
-Changes since 1.7.0
-
-  - 1.8.0
-     - enhancement: Update ECS ([PR](https://github.com/elastic/integrations/pull/123))
-     - bugfix: Fix bug ([PR](https://github.com/elastic/integrations/pull/124))
-  
-
-
-
-
-To promote these packages use this command:
-
-`elastic-package promote -d=snapshot-production -n -p "aws-1.8.0"`
