@@ -218,11 +218,23 @@ func clonePackageStorage() (*git.Repository, error) {
 }
 
 func checkoutBranch(repo *git.Repository, branch string) error {
-	remoteRef, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", branch), false)
+	var h *plumbing.Hash
+	var err error
+	for _, ref := range []string{
+		// Try to resolve plain branch names as part of the 'origin' remote.
+		string(plumbing.NewRemoteReferenceName("origin", branch)),
+		// Then try the default resolver.
+		branch,
+	} {
+		h, err = repo.ResolveRevision(plumbing.Revision(ref))
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return fmt.Errorf("failed to get remote reference for %v: %w", branch, err)
 	}
-	log.Printf("Branch <%s> is at commit %s", branch, remoteRef.Hash())
+	log.Printf("Git reference <%s> is at commit %s", branch, h)
 
 	wt, err := repo.Worktree()
 	if err != nil {
@@ -231,7 +243,7 @@ func checkoutBranch(repo *git.Repository, branch string) error {
 
 	log.Printf("Checking out %v.", branch)
 	err = wt.Checkout(&git.CheckoutOptions{
-		Hash: remoteRef.Hash(),
+		Hash: *h,
 	})
 	if err != nil {
 		return fmt.Errorf("checkout failed: %w", err)
