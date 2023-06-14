@@ -1,3 +1,6 @@
+**NOTE**: This tool is no longer needed because Elastic Fleet packages are now
+automatically published after changes are merged into elastic/integrations.
+
 # elastic-package-promoter
 
 This tool outputs a list of packages that are pending promotion in
